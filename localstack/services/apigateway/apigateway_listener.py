@@ -14,6 +14,7 @@ from localstack.utils.common import to_str, to_bytes
 from localstack.services.awslambda import lambda_api
 from localstack.services.kinesis import kinesis_listener
 from localstack.services.generic_proxy import ProxyListener
+from requests.structures import CaseInsensitiveDict
 
 # set up logger
 LOGGER = logging.getLogger(__name__)
@@ -179,6 +180,7 @@ class ProxyListenerApiGateway(ProxyListener):
         if re.match(regex2, path):
             search_match = re.search(regex2, path)
             api_id = search_match.group(1)
+            stage = search_match.group(2)
             relative_path = '/%s' % search_match.group(3)
             try:
                 integration = aws_stack.get_apigateway_integration(api_id, method, path=relative_path)
@@ -232,6 +234,30 @@ class ProxyListenerApiGateway(ProxyListener):
 
                     relative_path, query_string_params = extract_query_string_params(path=relative_path)
 
+                    source_ip = headers['X-Forwarded-For'].split(',')[-2]
+
+                    request_context = {
+                        'path': relative_path,
+                        'accountId': None,
+                        'resourceId': resource.get('id'),
+                        'stage': stage,
+                        'requestId': '',
+                        'identity': {
+                            'cognitoIdentityPoolId': None,
+                            'accountId': None,
+                            'cognitoIdentityId': None,
+                            'caller': None,
+                            'apiKey': None,
+                            'sourceIp': source_ip,
+                            'accessKey': None,
+                            'cognitoAuthenticationType': None,
+                            'cognitoAuthenticationProvider': None,
+                            'userArn': None,
+                            'userAgent': headers['user-agent'],
+                            'user': None
+                        }
+                    }
+
                     try:
                         path_params = extract_path_params(path=relative_path, extracted_path=extracted_path)
                     except Exception:
@@ -239,7 +265,7 @@ class ProxyListenerApiGateway(ProxyListener):
 
                     result = lambda_api.process_apigateway_invocation(func_arn, relative_path, data_str,
                         headers, path_params=path_params, query_string_params=query_string_params,
-                        method=method, resource_path=path)
+                        method=method, resource_path=path, request_context=request_context)
 
                     if isinstance(result, FlaskResponse):
                         return flask_to_requests_response(result)

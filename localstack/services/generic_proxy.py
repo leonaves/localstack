@@ -172,6 +172,16 @@ class GenericProxyHandler(BaseHTTPRequestHandler):
         if 'localhost.atlassian.io' in forward_headers.get('Host'):
             forward_headers['host'] = 'localhost'
 
+        x_forwarded_for = forward_headers.get('X-Forwarded-For')
+
+        client_address = self.client_address[0]
+        server_address = ':'.join(map(str, self.server.server_address))
+
+        if x_forwarded_for:
+            forward_headers['X-Forwarded-For'] = x_forwarded_for + ', ' + client_address + ', ' + server_address
+        else:
+            forward_headers['X-Forwarded-For'] = client_address + ', ' + server_address
+
         try:
             response = None
             modified_request = None

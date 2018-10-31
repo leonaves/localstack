@@ -1,6 +1,6 @@
 IMAGE_NAME ?= localstack/localstack
 IMAGE_NAME_BASE ?= localstack/java-maven-node-python
-IMAGE_TAG ?= $(shell cat localstack/constants.py | grep '^VERSION =' | sed "s/VERSION = ['\"]\(.*\)['\"].*/\1/")
+IMAGE_TAG ?= 'context' # $(shell cat localstack/constants.py | grep '^VERSION =' | sed "s/VERSION = ['\"]\(.*\)['\"].*/\1/")
 VENV_DIR ?= .venv
 VENV_RUN = . $(VENV_DIR)/bin/activate
 ADDITIONAL_MVN_ARGS ?= -DskipTests -q
