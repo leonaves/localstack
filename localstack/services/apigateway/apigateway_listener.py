@@ -230,6 +230,7 @@ class ProxyListenerApiGateway(ProxyListener):
             elif integration['type'] == 'AWS_PROXY':
                 if uri.startswith('arn:aws:apigateway:') and ':lambda:path' in uri:
                     func_arn = uri.split(':lambda:path')[1].split('functions/')[1].split('/invocations')[0]
+                    account_id = uri.split(':lambda:path')[1].split(':function:')[0].split(':')[-1]
                     data_str = json.dumps(data) if isinstance(data, dict) else data
 
                     relative_path, query_string_params = extract_query_string_params(path=relative_path)
@@ -238,13 +239,13 @@ class ProxyListenerApiGateway(ProxyListener):
 
                     request_context = {
                         'path': relative_path,
-                        'accountId': None,
+                        'accountId': account_id,
                         'resourceId': resource.get('id'),
                         'stage': stage,
                         'requestId': '',
                         'identity': {
                             'cognitoIdentityPoolId': None,
-                            'accountId': None,
+                            'accountId': account_id,
                             'cognitoIdentityId': None,
                             'caller': None,
                             'apiKey': None,
@@ -253,7 +254,7 @@ class ProxyListenerApiGateway(ProxyListener):
                             'cognitoAuthenticationType': None,
                             'cognitoAuthenticationProvider': None,
                             'userArn': None,
-                            'userAgent': headers['user-agent'],
+                            'userAgent': headers['User-Agent'],
                             'user': None
                         }
                     }

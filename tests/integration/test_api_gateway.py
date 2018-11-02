@@ -193,6 +193,27 @@ def test_api_gateway_lambda_proxy_integration():
     assert parsed_body.get('return_headers') == {'foo': 'bar123'}
     assert parsed_body.get('pathParameters') == {'test_param1': 'foo1'}
     assert parsed_body.get('queryStringParameters') == {'foo': 'foo', 'bar': ['bar', 'baz']}
+    assert parsed_body.get('requestContext') == {
+        'path': API_PATH_LAMBDA_PROXY_BACKEND,
+        'accountId': 'account_id',
+        'resourceId': 'id',
+        'stage': TEST_STAGE_NAME,
+        'requestId': '',
+        'identity': {
+            'cognitoIdentityPoolId': None,
+            'accountId': '0000',
+            'cognitoIdentityId': None,
+            'caller': None,
+            'apiKey': None,
+            'sourceIp': 'localhost',
+            'accessKey': None,
+            'cognitoAuthenticationType': None,
+            'cognitoAuthenticationProvider': None,
+            'userArn': None,
+            'userAgent': None,
+            'user': None
+        }
+    }
     result = requests.delete(url, data=json.dumps(data))
     assert result.status_code == 404
 
